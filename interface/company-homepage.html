@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!--Title-->
+    <title>Company homepage</title>
+    <!-- CSS File-->
+  </head>
+  <body style="background-color: skyblue">
+    <CENTER><h2>Home Page</h2></CENTER>
+    <button onclick="window.location.href='/logout';" style="float: right;">Log out</button>
+    <!--Table-->
+    <table>
+      <tr>
+        <td colspan="2">
+          <button onclick="window.location.href='/home';">Home</button>
+          <button onclick="window.location.href='/company/request';">List request</button>
+          <button onclick="window.location.href='/company/accepted';">List accepted</button>
+          <button onclick="window.location.href='/company/evaluate';">Evaluate</button>
+        </td>
+      </tr>
+      <tr>
+        <td id=formtd>
+          <!--Form-->
+          <form onsubmit="event.preventDefault();searchJob();" autocomplete="off">
+            <h3>Find</h3>
+            <!--div-1-->
+            <div>
+              <label>Job ID</label>
+              <input type="text" name="jobID" id="jobID" placeholder="Enter the Job ID">
+            </div>
+            <!--div-2-->
+            <div>
+              <label>Job Name</label>
+              <input type="text" name="jobName" id="jobName" placeholder="Enter the Job Name">
+            </div>
+            <!--div-3-->
+            <div class="form-action-buttons">
+              <!--Input Button-->
+              <input type="submit" value="Search">
+            </div>
+            <center>
+              <label id="findStatus"></label>
+            </center>
+          </form>
+        </td>
+        <td>
+          <h3>List job</h3>
+          <table id="jobTable">
+            <thead>
+              <tr>
+                <th>Job ID</th>
+                <th>Job name</th>
+                <th width="500">Description</th>
+                <th>Remain</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+            </tbody>
+          </table>
+          <center>
+            <button onclick="onAddJob();">Add new job</button>
+            <button onclick="updatejobList();">Update job list</button>
+            <br>
+            <label id="statusLabel"></label>
+          </center>
+        </td>
+      </tr>
+    </table>
+    
+    <style>
+      body > table {
+          width: 100%;
+      }
+      
+      table{
+          border-collapse: collapse;
+          text-align: center;
+      }
+      table.list{
+          width:100%;
+          text-align: center;
+      }
+      table.list td{
+          text-align: center;
+      }
+      td[id=formtd] {
+          width: 300px;
+      }
+      td, th {
+          border: 1px solid #dddddd;
+          text-align: left;
+          padding: 8px;
+      }
+      tr:nth-child(even),table.list thead>tr {
+          background-color: skyblue;
+      }
+      input[type=text], input[type=number] {
+          width: 100%;
+          padding: 12px 20px;
+          margin: 8px 0;
+          display: inline-block;
+          border: 1px solid #ccc;
+          border-radius: 4px;
+          box-sizing: border-box;
+      }
+      input[type=submit]{
+          width: 30%;
+          background-color: #ddd;
+          color: #000;
+          padding: 14px 20px;
+          margin: 8px 0;
+          border: none;
+          border-radius: 4px;
+          cursor: pointer;
+      }
+      textarea {
+          border: none;
+          width: 100%;
+          overflow-y: scroll;
+          height: 60px;
+          resize: none
+      }
+      form {
+          background-color: skyblue;
+          padding: 10px;
+      }
+      form div.form-action-buttons{
+          text-align: center;  
+      }
+      a {
+          cursor: pointer;
+          text-decoration: underline;
+          color: #0000ee;
+          margin-right: 4px;
+      }
+      button{
+          background-color: #ddd;
+          color: #000;
+          padding: 7px 10px;
+          margin: 8px 0;
+          border: none;
+          border-radius: 4px;
+          cursor: pointer;
+      }
+      
+    </style>
+    <script>
+      function onDelete(td) {
+          let selectedRow = td.parentElement.parentElement;
+          selectedRow.parentNode.removeChild(selectedRow);
+      }
+      
+      function onAddJob() {
+        fetch('/company/state')
+          .then(res1 => res1.json())
+          .then(data1 =>{
+            if (data1[0].current_s != "ADD"){
+                document.getElementById("statusLabel").innerHTML = 'It is not time for company adding, formating jobs';
+            }else{
+                document.getElementById("statusLabel").innerHTML = '';
+                let table = document.getElementById("jobTable").getElementsByTagName('tbody')[0];
+                let tableRow = table.insertRow(table.length);
+                let cell = tableRow.insertCell(0);
+                cell.innerHTML = '<input></input>';
+                cell = tableRow.insertCell(1);
+                cell.innerHTML = '<input></input>';
+                cell = tableRow.insertCell(2);
+                cell.innerHTML = '<textarea></textarea>';
+                cell = tableRow.insertCell(3);
+                cell.innerHTML = '<input></input>';
+                cell = tableRow.insertCell(4);
+                cell.innerHTML = '<a onClick="onDelete(this)">Delete</a>';
+          }
+          });
+      }
+
+      function updatejobList() {
+          let table = document.getElementById("jobTable").getElementsByTagName('tbody')[0];
+          let data = [];
+          for (let i = 0, row; row = table.rows[i]; i += 1) {
+              e = [];
+              for (let j = 0; j < 4; j += 1) {
+                  e.push(row.cells[j].childNodes[0].value);
+              }
+              data.push(e);
+          }
+          fetch('/company/update/job', {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json'
+              },
+              body: JSON.stringify(data)
+          })
+	      .then(res => res.text())
+	      .then(data => {
+                  document.getElementById("statusLabel").innerHTML = data;
+              });
+      }
+
+      function searchJob() {
+          let job_id = document.getElementById('jobID').value;
+          let job_name = document.getElementById('jobName').value;
+          if (job_id != '' || job_name != ''){
+            fetch('/company/searchjob', {
+              method: 'GET',
+              headers: {
+                  'job_id': job_id ,
+                  'job_name': job_name
+              },
+            })
+	          .then(res => res.json())
+	          .then(data => {
+                  if (data.length < 1) {
+                      document.getElementById('findStatus').innerHTML = 'No matching results found';
+                      return;
+                  }else{
+                    let table = document.getElementById("jobTable").getElementsByTagName('tbody')[0];
+                    while (table.rows.length > 0) {
+		                  table.deleteRow(table.rows.length - 1);
+	                  }
+                    document.getElementById('findStatus').innerHTML = '';
+                    data.forEach(row1 => {
+                      document.getElementById("statusLabel").innerHTML = '';
+                      let tableRow = table.insertRow(table.length);
+                      let cell = tableRow.insertCell(0);
+                      cell.innerHTML = '<input></input>';
+                      cell.childNodes[0].value = row1.job_id;
+                      cell = tableRow.insertCell(1);
+                      cell.innerHTML = '<input></input>';
+                      cell.childNodes[0].value = row1.job_name;
+                      cell = tableRow.insertCell(2);
+                      cell.innerHTML = '<textarea></textarea>';
+                      cell.childNodes[0].value = row1.description;
+                      cell = tableRow.insertCell(3);
+                      cell.innerHTML = '<input></input>';
+                      cell.childNodes[0].value = row1.number;
+                      cell = tableRow.insertCell(4);
+                      cell.innerHTML = '<a onClick="onDelete(this)">Delete</a>';
+	                });
+                  }
+            });
+          }else {
+            document.getElementById('findStatus').innerHTML = 'You need to input job ID or job name';
+          }
+      }
+
+      function showlistjob() {        
+          fetch('/company/listjob')
+              .then(res1 => res1.json())
+              .then(data1 => {
+                let table = document.getElementById("jobTable").getElementsByTagName('tbody')[0];
+                while (table.rows.length > 1) {
+                  table.deleteRow(table.rows.length - 1);}
+
+                data1.forEach(row1 => {
+                      let tableRow = table.insertRow(table.length);
+                      let cell = tableRow.insertCell(0);
+                      cell.innerHTML = '<input></input>';
+                      cell.childNodes[0].value = row1.job_id;
+                      cell = tableRow.insertCell(1);
+                      cell.innerHTML = '<input></input>';
+                      cell.childNodes[0].value = row1.job_name;
+                      cell = tableRow.insertCell(2);
+                      cell.innerHTML = '<textarea></textarea>';
+                      cell.childNodes[0].value = row1.description;
+                      cell = tableRow.insertCell(3);
+                      cell.innerHTML = '<input></input>';
+                      cell.childNodes[0].value = row1.number;
+                      cell = tableRow.insertCell(4);
+                      cell.innerHTML = '<a onClick="onDelete(this)">Delete</a>';
+	                  });
+              });
+      }
+
+      document.addEventListener('DOMContentLoaded', function() {
+          showlistjob();
+      }, false);
+    </script>
+  </body>
+</html>

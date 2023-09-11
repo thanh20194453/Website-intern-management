@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!--Title-->
+    <title>Accepted student</title>
+    <!-- CSS File-->
+  </head>
+  <body style="background-color: skyblue">
+    <CENTER><h2>Accepted student</h2></CENTER>
+    <button onclick="window.location.href='/logout';" style="float: right;">Log out</button>
+    <!--Table-->
+    <table>
+      <tr>
+        <td colspan="2">
+          <button onclick="window.location.href='/home';">Home</button>
+          <button onclick="window.location.href='/company/request';">List request</button>
+          <button onclick="window.location.href='/company/accepted';">List accepted</button>
+          <button onclick="window.location.href='/company/evaluate';">Evaluate</button>
+        </td>
+      </tr>
+      <tr>
+        <td>
+          <!--Form-->
+          <form onsubmit="event.preventDefault();searchStudent();" autocomplete="off">
+            <h3>Find</h3>
+            <!--div-1-->
+            <div>
+              <label>Job ID</label>
+              <input type="text" name="jobID" id="jobID" placeholder="Enter the Job ID">
+            </div>
+            <!--div-2-->
+            <div>
+              <label>Job Name</label>
+              <input type="text" name="jobName" id="jobName" placeholder="Enter the Job Name">
+            </div>
+            <!--div-3-->
+            <div>
+              <label>Student ID</label>
+              <input type="text" name="studentID" id="studentID" placeholder="Enter the Student ID">
+            </div>
+            <!--div-4-->
+            <div>
+              <label>Student Name</label>
+              <input type="text" name="studentName" id="studentName" placeholder="Enter the Student Name">
+            </div>
+            <!--div-5-->
+            <div>
+              <label>State</label>
+              <br>
+              <select id="ScoreState">
+                <option value="DEFAULT">Choose the available option</option>
+                <option value="SCORED">SCORED</option>
+                <option value="NOT SCORED">NOT SCORED</option>
+              </select>
+            </div>
+            <!--div-6-->
+            <div class="form-action-buttons">
+              <!--Input Button-->
+              <input type="submit" value="Search">
+            </div>
+            <center>
+              <label id="findStatus"></label>
+            </center>
+          </form>
+        </td>
+        <td>
+          <div>
+            <center>
+              <h3>List accepted students</h3>
+            </center>
+          </div>
+          <table class ="list" id="acceptedTable" style="background-color: #C2976D;">
+            <thead>
+              <tr>
+                <th>Student ID</th>
+                <th>Student name</th>
+                <th>Job ID</th>
+                <th>Job name</th>
+                <th>Score</th>
+                <th>State</th>
+              </tr>
+            </thead>
+            <tbody>
+            </tbody>
+          </table>
+        </td>
+      </tr>
+    </table>
+    
+    <style>
+      body > table {
+          width: 100%;
+      }
+      
+      table{
+          border-collapse: collapse;
+          text-align: center;
+      }
+      table.list{
+          width:100%;
+          text-align: center;
+      }
+      table.list td{
+          text-align: center;
+      }
+      td, th {
+          border: 1px solid #dddddd;
+          text-align: left;
+          padding: 8px;
+      }
+      tr:nth-child(even),table.list thead>tr {
+          background-color: skyblue;
+      }
+      input[type=text], input[type=number] {
+          width: 100%;
+          padding: 12px 20px;
+          margin: 8px 0;
+          display: inline-block;
+          border: 1px solid #ccc;
+          border-radius: 4px;
+          box-sizing: border-box;
+      }
+      input[type=submit]{
+          width: 30%;
+          background-color: #ddd;
+          color: #000;
+          padding: 14px 20px;
+          margin: 8px 0;
+          border: none;
+          border-radius: 4px;
+          cursor: pointer;
+      }
+      form {
+          background-color: skyblue;
+          padding: 10px;
+      }
+      form div.form-action-buttons{
+          text-align: center;  
+      }
+      a {
+          cursor: pointer;
+          text-decoration: underline;
+          color: #0000ee;
+          margin-right: 4px;
+      }
+      button{
+          background-color: #ddd;
+          color: #000;
+          padding: 7px 10px;
+          margin: 8px 0;
+          border: none;
+          border-radius: 4px;
+          cursor: pointer;
+      }
+      select[id=ScoreState] {
+          width: 100%;
+          padding: 12px 20px;
+          margin: 8px 0;
+          display: inline-block;
+          border: 1px solid #ccc;
+          border-radius: 4px;
+          box-sizing: border-box;
+      }
+    </style>
+    <script>
+      function showlistaccepted() {        
+          fetch('/company/listaccepted')
+              .then(res1 => res1.json())
+              .then(data1 => {
+                let table = document.getElementById("acceptedTable").getElementsByTagName('tbody')[0];
+                while (table.rows.length > 1) {
+                  table.deleteRow(table.rows.length - 1);}
+
+                data1.forEach(row1 => {
+                      let tableRow = table.insertRow(table.length);
+                      let cell = tableRow.insertCell(0);
+                      cell.innerHTML = row1.student_id;                  
+                      cell = tableRow.insertCell(1);
+                      cell.innerHTML = row1.name;                     
+                      cell = tableRow.insertCell(2);
+                      cell.innerHTML = row1.job_id;
+                      cell = tableRow.insertCell(3);
+                      cell.innerHTML = row1.job_name;
+                      cell = tableRow.insertCell(4);
+                      cell.innerHTML = row1.score;
+                      cell = tableRow.insertCell(5);
+                      if (row1.score) {
+                        cell.innerHTML = "SCORED";
+                      }else {
+                        cell.innerHTML = "NOT SCORED";
+                      }
+	                  });
+              });
+      }
+
+      function searchStudent() {
+          let job_id = document.getElementById('jobID').value;
+          let job_name = document.getElementById('jobName').value;
+          let student_id = document.getElementById('studentID').value;
+          let student_name = document.getElementById('studentName').value;
+          let score_state = document.getElementById('ScoreState').options;
+          score_state = score_state[score_state.selectedIndex].value;
+          if (job_id != '' || job_name != '' || student_id != '' || student_name != '' || score_state != 'DEFAULT'){
+            fetch('/company/searchaccept', {
+              method: 'GET',
+              headers: {
+                  'job_id': job_id ,
+                  'job_name': job_name,
+                  'student_id': student_id ,
+                  'student_name': student_name,
+                  'score_state' : score_state                 
+              },
+            })
+	          .then(res => res.json())
+	          .then(data => {
+                  if (data.length < 1) {
+                      document.getElementById('findStatus').innerHTML = 'No matching results found';
+                      return;
+                  }else{
+                    let table = document.getElementById("acceptedTable").getElementsByTagName('tbody')[0];
+                    while (table.rows.length > 0) {
+		                  table.deleteRow(table.rows.length - 1);
+	                  }
+                    document.getElementById('findStatus').innerHTML = '';
+                    data.forEach(row1 => {
+                      let tableRow = table.insertRow(table.length);
+                      let cell = tableRow.insertCell(0);
+                      cell.innerHTML = row1.student_id;                  
+                      cell = tableRow.insertCell(1);
+                      cell.innerHTML = row1.name;                     
+                      cell = tableRow.insertCell(2);
+                      cell.innerHTML = row1.job_id;
+                      cell = tableRow.insertCell(3);
+                      cell.innerHTML = row1.job_name;
+                      cell = tableRow.insertCell(4);
+                      cell.innerHTML = row1.score;
+                      cell = tableRow.insertCell(5);
+                      if (row1.score) {
+                        cell.innerHTML = "SCORED";
+                      }else {
+                        cell.innerHTML = "NOT SCORED";
+                      }
+	                });
+                  }
+            });
+          }else {
+            document.getElementById('findStatus').innerHTML = 'You need to input at least one field';
+          }
+      }
+
+      document.addEventListener('DOMContentLoaded', function() {
+          showlistaccepted();
+      }, false);
+    </script>
+  </body>
+</html>
